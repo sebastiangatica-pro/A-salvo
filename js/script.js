@@ -149,7 +149,8 @@ function initializeAviso() {
   const message = page;
   const counter = document.querySelector('[data-aviso-contador]');
   const validation = document.querySelector('[data-aviso-validacion]');
-  const action = document.querySelector('[data-aviso-accion]');
+  const smsAction = document.querySelector('[data-aviso-sms]');
+  const copyAction = document.querySelector('[data-aviso-copiar]');
   const status = document.querySelector('[data-aviso-status]');
   const quickPhrases = [...document.querySelectorAll('[data-aviso-frase]')];
 
@@ -162,11 +163,6 @@ function initializeAviso() {
     showAvisoStatus(`No se pudo leer el aviso guardado: ${error.message}`, true);
   }
   message.value = savedMessage.slice(0, AVISO_MAX_LENGTH) || AVISO_DEFAULT;
-
-  const isMobile = navigator.userAgent.includes('Mobi')
-    || navigator.userAgent.includes('Android')
-    || navigator.userAgent.includes('iPhone');
-  action.textContent = isMobile ? 'Abrir mensajes' : 'Copiar aviso';
 
   function showAvisoStatus(text, isError = false) {
     if (!status) return;
@@ -195,7 +191,8 @@ function initializeAviso() {
       validation.classList.toggle('text-danger', !valid);
       validation.classList.toggle('text-success', valid);
     }
-    if (action) action.disabled = !valid;
+    if (smsAction) smsAction.disabled = !valid;
+    if (copyAction) copyAction.disabled = !valid;
     return valid;
   }
 
@@ -219,30 +216,49 @@ function initializeAviso() {
     });
   });
 
-  action.addEventListener('click', async () => {
+  smsAction.addEventListener('click', () => {
     if (!validate()) return;
     const text = message.value.trim();
 
-    if (isMobile) {
-      let recipients = '';
-      try {
-        const contacts = JSON.parse(localStorage.getItem('a-salvo-contactos') || '[]');
-        if (Array.isArray(contacts)) {
-          recipients = contacts
-            .map((contact) => contact.telefono || contact.phone || contact.numero || '')
-            .filter(Boolean)
-            .join(',');
-        }
-      } catch (error) {
-        showAvisoStatus(`No se pudieron cargar los contactos: ${error.message}`, true);
-      }
-      window.location.href = `sms:${recipients}?body=${encodeURIComponent(text)}`;
+    let contacts;
+    try {
+      contacts = JSON.parse(localStorage.getItem(CONTACTOS_STORAGE_KEY) || '[]');
+    } catch (error) {
+      showAvisoStatus(`No se pudieron cargar los contactos: ${error.message}`, true);
       return;
     }
 
+    if (!Array.isArray(contacts) || contacts.length === 0) {
+      showAvisoStatus('Primero agrega contactos: ', true);
+      const link = document.createElement('a');
+      link.href = 'contactos.html';
+      link.textContent = 'Ir a Contactos';
+      link.className = 'link-danger';
+      status.append(link);
+      return;
+    }
+
+    const recipients = contacts
+      .map((contact) => contact.telefono || '')
+      .filter(Boolean)
+      .map((phone) => phone.startsWith('+') ? phone : `+56${phone}`)
+      .join(',');
+    if (!recipients) {
+      showAvisoStatus('No hay números de teléfono válidos en tus contactos.', true);
+      return;
+    }
+
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const separator = isIOS ? '&body=' : '?body=';
+    window.location.href = `sms:${recipients}${separator}${encodeURIComponent(text)}`;
+  });
+
+  copyAction.addEventListener('click', async () => {
+    if (!validate()) return;
+    const text = message.value.trim();
     try {
       await navigator.clipboard.writeText(text);
-      showAvisoStatus('Aviso copiado al portapapeles.');
+      showAvisoStatus('Mensaje copiado.');
     } catch (error) {
       showAvisoStatus(`No se pudo copiar el aviso: ${error.message}`, true);
     }
@@ -253,9 +269,101 @@ function initializeAviso() {
 
 initializeAviso();
 
+const CONTACTOS_STORAGE_KEY = 'a-salvo-contactos';
+
+function initializeContactos() {
+  const form = document.getElementById('form-contacto');
+  if (!form) return;
+
+  const nombreInput = document.getElementById('nombre');
+  const telefonoInput = document.getElementById('telefono');
+  const lista = document.getElementById('lista-contactos');
+  const estado = document.getElementById('contactos-estado');
+
+  function cargarContactos() {
+    const guardados = JSON.parse(localStorage.getItem(CONTACTOS_STORAGE_KEY) || '[]');
+    if (!Array.isArray(guardados)) throw new Error('La lista guardada no tiene el formato esperado.');
+    return guardados;
+  }
+
+  function mostrarContactos() {
+    const contactos = cargarContactos();
+    lista.replaceChildren();
+
+    if (contactos.length === 0) {
+      estado.textContent = 'Todavía no tienes contactos guardados.';
+      return;
+    }
+
+    estado.textContent = '';
+    contactos.forEach((contacto) => {
+      const columna = document.createElement('div');
+      columna.className = 'col-12 col-md-6';
+
+      const tarjeta = document.createElement('article');
+      tarjeta.className = 'card h-100';
+
+      const cuerpo = document.createElement('div');
+      cuerpo.className = 'card-body';
+
+      const titulo = document.createElement('h3');
+      titulo.className = 'card-title h6';
+      titulo.textContent = contacto.nombre;
+
+      const telefono = document.createElement('p');
+      telefono.className = 'card-text text-secondary mb-0';
+      telefono.textContent = contacto.telefono;
+
+      cuerpo.append(titulo, telefono);
+      tarjeta.append(cuerpo);
+      columna.append(tarjeta);
+      lista.append(columna);
+    });
+  }
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const nombre = nombreInput.value.trim();
+    const telefono = telefonoInput.value.trim();
+    const nombreValido = nombre.length > 0;
+    const telefonoValido = /^9[0-9]{8}$/.test(telefono);
+
+    nombreInput.classList.toggle('is-invalid', !nombreValido);
+    telefonoInput.classList.toggle('is-invalid', !telefonoValido);
+    if (!nombreValido || !telefonoValido) return;
+
+    try {
+      const contactos = cargarContactos();
+      contactos.push({
+        id: `${Date.now()}`,
+        nombre,
+        telefono
+      });
+      localStorage.setItem(CONTACTOS_STORAGE_KEY, JSON.stringify(contactos));
+      form.reset();
+      mostrarContactos();
+      nombreInput.focus();
+    } catch (error) {
+      estado.textContent = `No se pudo guardar el contacto: ${error.message}`;
+    }
+  });
+
+  [nombreInput, telefonoInput].forEach((input) => {
+    input.addEventListener('input', () => input.classList.remove('is-invalid'));
+  });
+
+  try {
+    mostrarContactos();
+  } catch (error) {
+    estado.textContent = `No se pudieron cargar los contactos: ${error.message}`;
+  }
+}
+
+initializeContactos();
+
 const PLAN_STORAGE_KEY = 'a-salvo-plan-familiar';
 const PLAN_STORAGE_ALIASES = ['a-salvo-plan'];
-const CONTACTOS_STORAGE_KEY = 'a-salvo-contactos';
 
 function initializePlanFamiliar() {
   const form = document.querySelector('[data-plan-form]');
