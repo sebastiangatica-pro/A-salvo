@@ -14,6 +14,53 @@
   <body>
     <main class="container py-5">
       <h1 class="mb-4">Mi aviso</h1>
+      <p class="text-secondary mb-4">Personaliza el mensaje que compartirás con tus contactos.</p>
+
+      <section class="card mb-4" aria-labelledby="aviso-mensaje-titulo">
+        <div class="card-body">
+          <h2 class="h5 mb-3" id="aviso-mensaje-titulo">Mensaje</h2>
+          <label class="form-label" for="aviso-mensaje">Escribe tu aviso</label>
+          <textarea
+            class="form-control"
+            id="aviso-mensaje"
+            name="mensaje"
+            rows="5"
+            maxlength="160"
+            data-aviso-mensaje
+            aria-describedby="aviso-contador aviso-validacion"
+          ></textarea>
+          <div class="d-flex justify-content-between align-items-start mt-2">
+            <p class="small mb-0" id="aviso-validacion" data-aviso-validacion aria-live="polite">
+              El mensaje no puede estar vacío.
+            </p>
+            <span class="small text-secondary ms-3" id="aviso-contador" data-aviso-contador>
+              0 / 160
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card mb-4" aria-labelledby="aviso-frases-titulo">
+        <div class="card-body">
+          <h2 class="h5 mb-3" id="aviso-frases-titulo">Frases rápidas</h2>
+          <div class="d-grid gap-2" data-aviso-frases>
+            <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Estoy a salvo. Estoy bien y en un lugar seguro.">
+              Estoy a salvo
+            </button>
+            <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Necesito ayuda. Estoy en un lugar seguro y espero apoyo.">
+              Necesito ayuda
+            </button>
+            <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Estoy bien, pero no puedo comunicarme por teléfono.">
+              Sin cobertura telefónica
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <button type="button" class="btn btn-primary w-100" data-aviso-accion disabled>
+        Abrir mensajes
+      </button>
+      <p class="small text-center mt-3 visually-hidden" data-aviso-status role="status" aria-live="polite"></p>
     </main>
 
     <nav class="bottom-nav fixed-bottom" aria-label="Navegación principal">

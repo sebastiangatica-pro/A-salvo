@@ -14,6 +14,48 @@
   <body>
     <main class="container py-5">
       <h1 class="mb-4">Plan familiar</h1>
+      <p class="text-secondary mb-4">Define dónde reunirse y la responsabilidad de cada contacto.</p>
+
+      <form data-plan-form novalidate>
+        <section class="card mb-4" aria-labelledby="punto-encuentro-titulo">
+          <div class="card-body">
+            <h2 class="h5 mb-3" id="punto-encuentro-titulo">Punto de encuentro</h2>
+            <label class="form-label" for="punto-encuentro">Lugar acordado</label>
+            <input
+              type="text"
+              class="form-control"
+              id="punto-encuentro"
+              maxlength="120"
+              data-punto-encuentro
+              aria-describedby="punto-encuentro-validacion"
+              required
+            >
+            <div class="invalid-feedback" id="punto-encuentro-validacion">
+              Indica el punto de encuentro familiar.
+            </div>
+          </div>
+        </section>
+
+        <section class="card mb-4" aria-labelledby="tareas-titulo">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2 class="h5 mb-0" id="tareas-titulo">Tarea por contacto</h2>
+              <span class="small text-secondary" data-plan-contador>0 contactos</span>
+            </div>
+            <div data-plan-tareas>
+              <p class="text-secondary mb-0">Cargando contactos...</p>
+            </div>
+            <a class="btn btn-outline-primary mt-3" href="contactos.html" data-plan-sin-contactos hidden>
+              Agregar contactos
+            </a>
+          </div>
+        </section>
+
+        <button type="submit" class="btn btn-primary w-100" data-plan-guardar>
+          Guardar plan
+        </button>
+      </form>
+      <p class="small mt-3 visually-hidden" data-plan-status role="status" aria-live="polite"></p>
     </main>
 
     <nav class="bottom-nav fixed-bottom" aria-label="Navegación principal">

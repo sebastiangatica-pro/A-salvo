@@ -22,8 +22,21 @@
           <span class="fw-bold fs-6 lh-sm">ESTOY</span>
           <span class="fw-bold fs-6 lh-sm">A SALVO</span>
       </a>
+      <section class="card w-100 mt-5" data-kit-progress aria-labelledby="kit-progress-title">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h5 mb-0" id="kit-progress-title">Tu kit de emergencia</h2>
+            <span class="fw-semibold" data-kit-count>0 de 14</span>
+          </div>
+          <div class="progress" role="progressbar" aria-label="Avance del kit" aria-valuemin="0" aria-valuemax="14" aria-valuenow="0">
+            <div class="progress-bar" data-kit-bar style="width: 0%"></div>
+          </div>
+          <a class="btn btn-outline-primary btn-sm mt-3" href="kit.html">Revisar mi kit</a>
+        </div>
+      </section>
+      <p class="visually-hidden" data-kit-status role="status" aria-live="polite"></p>
     </div>
-    <!-- TODO: pendiente navbar desktop -->
+    
     <nav class="bottom-nav fixed-bottom" aria-label="Navegación principal">
       <a class="bottom-nav__item active" href="inicio.html" aria-current="page">
         <i class="bi bi-house" aria-hidden="true"></i><span>Inicio</span>
