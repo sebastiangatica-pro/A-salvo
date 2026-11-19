@@ -27,7 +27,7 @@ function limpiarEstado(elemento) {
   elemento.classList.remove('text-danger', 'text-success');
 }
 
-// Kit (kit.html e inicio.html)
+// Kit (kit.html e index.html)
 
 async function iniciarKit() {
   const listaKit = document.querySelector('[data-kit-checklist]');
@@ -188,7 +188,6 @@ function iniciarAviso() {
     boton.addEventListener('click', () => {
       mensaje.value = boton.dataset.avisoFrase;
       mensaje.dispatchEvent(new Event('input'));
-      mensaje.focus();
     });
   });
 

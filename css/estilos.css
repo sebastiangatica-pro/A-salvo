@@ -18,6 +18,21 @@ body {
   justify-content: center;
 }
 .btn-circle-lg { width: 9rem; }
+
+.btn-pulse {
+  animation: pulso 2s infinite;
+}
+
+@keyframes pulso {
+  0%   { box-shadow: 0 0 0 0      rgba(var(--bs-primary-rgb), .6); }
+  70%  { box-shadow: 0 0 0 1.5rem rgba(var(--bs-primary-rgb), 0); }
+  100% { box-shadow: 0 0 0 0      rgba(var(--bs-primary-rgb), 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-pulse { animation: none; }
+}
+
 .bottom-nav {
   display: flex;
   justify-content: space-around;
