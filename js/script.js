@@ -1,277 +1,249 @@
-const KIT_STORAGE_KEY = 'a-salvo-kit-completados';
+const CLAVE_KIT = 'a-salvo-kit-completados';
+const CLAVE_AVISO = 'a-salvo-aviso-mensaje';
+const CLAVE_CONTACTOS = 'a-salvo-contactos';
+const CLAVE_PLAN = 'a-salvo-plan-familiar';
+const AVISO_POR_DEFECTO = 'Estoy a salvo. Estoy bien y en un lugar seguro.';
+const AVISO_LARGO_MAXIMO = 160;
 
-async function initializeKit() {
-  const checklist = document.querySelector('[data-kit-checklist]');
-  const progressSections = [...document.querySelectorAll('[data-kit-progress]')];
-  if (!checklist && progressSections.length === 0) return;
+// Utilidades compartidas
 
-  const status = document.querySelector('[data-kit-status]');
-  const showError = (message) => {
-    if (status) {
-      status.textContent = message;
-      status.classList.remove('visually-hidden');
-      status.classList.add('alert', 'alert-danger');
-    }
-  };
-  const clearStatus = () => {
-    if (status) {
-      status.textContent = '';
-      status.classList.add('visually-hidden');
-      status.classList.remove('alert', 'alert-danger');
-    }
-  };
+function leerContactos() {
+  const contactos = JSON.parse(localStorage.getItem(CLAVE_CONTACTOS) || '[]');
+  return Array.isArray(contactos) ? contactos : [];
+}
+
+function mostrarEstado(elemento, texto, esError = false) {
+  if (!elemento) return;
+  elemento.textContent = texto;
+  elemento.classList.remove('visually-hidden');
+  elemento.classList.toggle('text-danger', esError);
+  elemento.classList.toggle('text-success', !esError);
+}
+
+function limpiarEstado(elemento) {
+  if (!elemento) return;
+  elemento.textContent = '';
+  elemento.classList.add('visually-hidden');
+  elemento.classList.remove('text-danger', 'text-success');
+}
+
+// Kit (kit.html e inicio.html)
+
+async function iniciarKit() {
+  const listaKit = document.querySelector('[data-kit-checklist]');
+  const seccionesAvance = [...document.querySelectorAll('[data-kit-progress]')];
+  if (!listaKit && seccionesAvance.length === 0) return;
+
+  const estado = document.querySelector('[data-kit-status]');
 
   try {
-    const response = await fetch('data/kit.json');
-    if (!response.ok) {
-      throw new Error(`No se pudo cargar data/kit.json (${response.status}).`);
+    const respuesta = await fetch('data/kit.json');
+    if (!respuesta.ok) {
+      throw new Error(`No se pudo cargar data/kit.json (${respuesta.status}).`);
     }
 
-    const items = await response.json();
-    if (
-      !Array.isArray(items)
-      || items.length !== 14
-      || items.some((item) => !item.id || !item.nombre || !item.categoria)
-      || new Set(items.map((item) => item.id)).size !== items.length
-    ) {
-      throw new Error('El archivo data/kit.json no contiene las 14 tareas esperadas.');
-    }
-    const categories = [...new Set(items.map((item) => item.categoria))];
-    if (categories.length !== 4) {
-      throw new Error('El archivo data/kit.json debe contener exactamente 4 categorías.');
-    }
+    const elementos = await respuesta.json();
+    if (!Array.isArray(elementos)) throw new Error('data/kit.json no tiene el formato esperado.');
+    const categorias = [...new Set(elementos.map((elemento) => elemento.categoria))];
 
-    const storedItems = JSON.parse(localStorage.getItem(KIT_STORAGE_KEY) || '[]');
-    if (!Array.isArray(storedItems)) {
-      throw new Error('El avance guardado del kit no tiene un formato válido.');
-    }
-    const validIds = new Set(items.map((item) => item.id));
-    const completedItems = new Set(storedItems.filter((id) => validIds.has(id)));
+    const guardados = JSON.parse(localStorage.getItem(CLAVE_KIT) || '[]');
+    const idsValidos = new Set(elementos.map((elemento) => elemento.id));
+    const completados = new Set(
+      Array.isArray(guardados) ? guardados.filter((id) => idsValidos.has(id)) : []
+    );
 
-    const updateProgress = () => {
-      const completed = completedItems.size;
-      const percentage = Math.round((completed / items.length) * 100);
-      progressSections.forEach((section) => {
-        section.querySelector('[data-kit-count]').textContent = `${completed} de ${items.length}`;
-        const progress = section.querySelector('[role="progressbar"]');
-        const bar = section.querySelector('[data-kit-bar]');
-        progress.setAttribute('aria-valuemax', items.length);
-        progress.setAttribute('aria-valuenow', completed);
-        bar.style.width = `${percentage}%`;
+    const actualizarAvance = () => {
+      const listos = completados.size;
+      const porcentaje = Math.round((listos / elementos.length) * 100);
+      seccionesAvance.forEach((seccion) => {
+        seccion.querySelector('[data-kit-count]').textContent = `${listos} de ${elementos.length}`;
+        const barraProgreso = seccion.querySelector('[role="progressbar"]');
+        barraProgreso.setAttribute('aria-valuemax', elementos.length);
+        barraProgreso.setAttribute('aria-valuenow', listos);
+        seccion.querySelector('[data-kit-bar]').style.width = `${porcentaje}%`;
       });
     };
 
-    if (checklist) {
-      categories.forEach((category, categoryIndex) => {
+    if (listaKit) {
+      categorias.forEach((categoria, indice) => {
         const item = document.createElement('div');
         item.className = 'accordion-item';
 
-        const heading = document.createElement('h2');
-        heading.className = 'accordion-header';
-        heading.id = `kit-heading-${categoryIndex}`;
+        const encabezado = document.createElement('h2');
+        encabezado.className = 'accordion-header';
+        encabezado.id = `kit-heading-${indice}`;
 
-        const toggle = document.createElement('button');
-        toggle.className = 'accordion-button collapsed';
-        toggle.type = 'button';
-        toggle.dataset.bsToggle = 'collapse';
-        toggle.dataset.bsTarget = `#kit-category-${categoryIndex}`;
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.setAttribute('aria-controls', `kit-category-${categoryIndex}`);
-        toggle.textContent = category;
-        heading.append(toggle);
+        const boton = document.createElement('button');
+        boton.className = 'accordion-button collapsed';
+        boton.type = 'button';
+        boton.dataset.bsToggle = 'collapse';
+        boton.dataset.bsTarget = `#kit-category-${indice}`;
+        boton.setAttribute('aria-expanded', 'false');
+        boton.setAttribute('aria-controls', `kit-category-${indice}`);
+        boton.textContent = categoria;
+        encabezado.append(boton);
 
         const panel = document.createElement('div');
-        panel.id = `kit-category-${categoryIndex}`;
+        panel.id = `kit-category-${indice}`;
         panel.className = 'accordion-collapse collapse';
-        panel.setAttribute('aria-labelledby', heading.id);
+        panel.setAttribute('aria-labelledby', encabezado.id);
         panel.dataset.bsParent = '#kit-accordion';
 
-        const body = document.createElement('div');
-        body.className = 'accordion-body';
-        items.filter((kitItem) => kitItem.categoria === category).forEach((kitItem) => {
-          const wrapper = document.createElement('div');
-          wrapper.className = 'form-check mb-3';
+        const cuerpo = document.createElement('div');
+        cuerpo.className = 'accordion-body';
+        elementos.filter((elemento) => elemento.categoria === categoria).forEach((elemento) => {
+          const contenedor = document.createElement('div');
+          contenedor.className = 'form-check mb-3';
 
-          const checkbox = document.createElement('input');
-          checkbox.className = 'form-check-input';
-          checkbox.type = 'checkbox';
-          checkbox.id = `kit-item-${kitItem.id}`;
-          checkbox.checked = completedItems.has(kitItem.id);
-          checkbox.addEventListener('change', () => {
-            if (checkbox.checked) {
-              completedItems.add(kitItem.id);
+          const casilla = document.createElement('input');
+          casilla.className = 'form-check-input';
+          casilla.type = 'checkbox';
+          casilla.id = `kit-item-${elemento.id}`;
+          casilla.checked = completados.has(elemento.id);
+          casilla.addEventListener('change', () => {
+            if (casilla.checked) {
+              completados.add(elemento.id);
             } else {
-              completedItems.delete(kitItem.id);
+              completados.delete(elemento.id);
             }
-            updateProgress();
+            actualizarAvance();
             try {
-              localStorage.setItem(KIT_STORAGE_KEY, JSON.stringify([...completedItems]));
-              clearStatus();
+              localStorage.setItem(CLAVE_KIT, JSON.stringify([...completados]));
+              limpiarEstado(estado);
             } catch (error) {
-              showError(`No se pudo guardar el avance del kit: ${error.message}`);
+              mostrarEstado(estado, `No se pudo guardar el avance del kit: ${error.message}`, true);
             }
           });
 
-          const label = document.createElement('label');
-          label.className = 'form-check-label fw-semibold';
-          label.htmlFor = checkbox.id;
-          label.textContent = kitItem.nombre;
-          wrapper.append(checkbox, label);
-          body.append(wrapper);
+          const etiqueta = document.createElement('label');
+          etiqueta.className = 'form-check-label fw-semibold';
+          etiqueta.htmlFor = casilla.id;
+          etiqueta.textContent = elemento.nombre;
+          contenedor.append(casilla, etiqueta);
+          cuerpo.append(contenedor);
         });
 
-        panel.append(body);
-        item.append(heading, panel);
-        checklist.append(item);
+        panel.append(cuerpo);
+        item.append(encabezado, panel);
+        listaKit.append(item);
       });
     }
 
-    updateProgress();
+    actualizarAvance();
   } catch (error) {
-    const hint = window.location.protocol === 'file:'
+    const pista = window.location.protocol === 'file:'
       ? ' Abre el proyecto con Live Server o desde GitHub Pages; fetch no funciona al abrir el HTML con doble clic.'
       : '';
-    showError(`No se pudo mostrar el kit. ${error.message}.${hint}`);
+    mostrarEstado(estado, `No se pudo mostrar el kit. ${error.message}${pista}`, true);
   }
 }
 
-initializeKit();
+// Mi aviso (mi_aviso.html)
 
-const AVISO_STORAGE_KEY = 'a-salvo-aviso-mensaje';
-const AVISO_STORAGE_ALIASES = ['a-salvo-aviso', 'a-salvo-mensaje'];
-const AVISO_DEFAULT = 'Estoy a salvo. Estoy bien y en un lugar seguro.';
-const AVISO_MAX_LENGTH = 160;
+function iniciarAviso() {
+  const mensaje = document.querySelector('[data-aviso-mensaje]');
+  if (!mensaje) return;
 
-function initializeAviso() {
-  const page = document.querySelector('[data-aviso-mensaje]');
-  if (!page) return;
+  const contador = document.querySelector('[data-aviso-contador]');
+  const validacion = document.querySelector('[data-aviso-validacion]');
+  const botonSms = document.querySelector('[data-aviso-sms]');
+  const botonCopiar = document.querySelector('[data-aviso-copiar]');
+  const estado = document.querySelector('[data-aviso-status]');
+  const frasesRapidas = [...document.querySelectorAll('[data-aviso-frase]')];
 
-  const message = page;
-  const counter = document.querySelector('[data-aviso-contador]');
-  const validation = document.querySelector('[data-aviso-validacion]');
-  const smsAction = document.querySelector('[data-aviso-sms]');
-  const copyAction = document.querySelector('[data-aviso-copiar]');
-  const status = document.querySelector('[data-aviso-status]');
-  const quickPhrases = [...document.querySelectorAll('[data-aviso-frase]')];
-
-  let savedMessage = '';
+  let mensajeGuardado = '';
   try {
-    savedMessage = localStorage.getItem(AVISO_STORAGE_KEY)
-      || AVISO_STORAGE_ALIASES.map((key) => localStorage.getItem(key)).find(Boolean)
-      || '';
+    mensajeGuardado = localStorage.getItem(CLAVE_AVISO) || '';
   } catch (error) {
-    showAvisoStatus(`No se pudo leer el aviso guardado: ${error.message}`, true);
+    mostrarEstado(estado, `No se pudo leer el aviso guardado: ${error.message}`, true);
   }
-  message.value = savedMessage.slice(0, AVISO_MAX_LENGTH) || AVISO_DEFAULT;
+  mensaje.value = mensajeGuardado.slice(0, AVISO_LARGO_MAXIMO) || AVISO_POR_DEFECTO;
 
-  function showAvisoStatus(text, isError = false) {
-    if (!status) return;
-    status.textContent = text;
-    status.classList.remove('visually-hidden');
-    status.classList.toggle('text-danger', isError);
-    status.classList.toggle('text-success', !isError);
-  }
+  function validar() {
+    const valido = mensaje.value.trim().length > 0;
+    contador.textContent = `${mensaje.value.length} / ${AVISO_LARGO_MAXIMO}`;
+    mensaje.classList.toggle('is-invalid', !valido);
+    mensaje.classList.toggle('is-valid', valido);
 
-  function clearAvisoStatus() {
-    if (!status) return;
-    status.textContent = '';
-    status.classList.add('visually-hidden');
-    status.classList.remove('text-danger', 'text-success');
-  }
+    validacion.textContent = valido ? 'Mensaje listo para compartir.' : 'El mensaje no puede estar vacío.';
+    validacion.classList.toggle('text-danger', !valido);
+    validacion.classList.toggle('text-success', valido);
 
-  function validate() {
-    const text = message.value.trim();
-    const valid = text.length > 0;
-    if (counter) counter.textContent = `${message.value.length} / ${AVISO_MAX_LENGTH}`;
-    message.classList.toggle('is-invalid', !valid);
-    message.classList.toggle('is-valid', valid);
-
-    if (validation) {
-      validation.textContent = valid ? 'Mensaje listo para compartir.' : 'El mensaje no puede estar vacío.';
-      validation.classList.toggle('text-danger', !valid);
-      validation.classList.toggle('text-success', valid);
-    }
-    if (smsAction) smsAction.disabled = !valid;
-    if (copyAction) copyAction.disabled = !valid;
-    return valid;
+    botonSms.disabled = !valido;
+    botonCopiar.disabled = !valido;
+    return valido;
   }
 
-  message.addEventListener('input', () => {
-    validate();
-    clearAvisoStatus();
+  mensaje.addEventListener('input', () => {
+    validar();
+    limpiarEstado(estado);
     try {
-      localStorage.setItem(AVISO_STORAGE_KEY, message.value);
-      AVISO_STORAGE_ALIASES.forEach((key) => localStorage.setItem(key, message.value));
+      localStorage.setItem(CLAVE_AVISO, mensaje.value);
     } catch (error) {
-      showAvisoStatus(`No se pudo guardar el aviso: ${error.message}`, true);
+      mostrarEstado(estado, `No se pudo guardar el aviso: ${error.message}`, true);
     }
   });
 
-  quickPhrases.forEach((button) => {
-    button.addEventListener('click', () => {
-      message.value = button.dataset.avisoFrase;
-      validate();
-      message.dispatchEvent(new Event('input'));
-      message.focus();
+  frasesRapidas.forEach((boton) => {
+    boton.addEventListener('click', () => {
+      mensaje.value = boton.dataset.avisoFrase;
+      mensaje.dispatchEvent(new Event('input'));
+      mensaje.focus();
     });
   });
 
-  smsAction.addEventListener('click', () => {
-    if (!validate()) return;
-    const text = message.value.trim();
+  botonSms.addEventListener('click', () => {
+    if (!validar()) return;
 
-    let contacts;
+    let contactos;
     try {
-      contacts = JSON.parse(localStorage.getItem(CONTACTOS_STORAGE_KEY) || '[]');
+      contactos = leerContactos();
     } catch (error) {
-      showAvisoStatus(`No se pudieron cargar los contactos: ${error.message}`, true);
+      mostrarEstado(estado, `No se pudieron cargar los contactos: ${error.message}`, true);
       return;
     }
 
-    if (!Array.isArray(contacts) || contacts.length === 0) {
-      showAvisoStatus('Primero agrega contactos: ', true);
-      const link = document.createElement('a');
-      link.href = 'contactos.html';
-      link.textContent = 'Ir a Contactos';
-      link.className = 'link-danger';
-      status.append(link);
+    if (contactos.length === 0) {
+      mostrarEstado(estado, 'Primero agrega contactos: ', true);
+      const enlace = document.createElement('a');
+      enlace.href = 'contactos.html';
+      enlace.textContent = 'Ir a Contactos';
+      enlace.className = 'link-danger';
+      estado.append(enlace);
       return;
     }
 
-    const recipients = contacts
-      .map((contact) => contact.telefono || '')
+    const destinatarios = contactos
+      .map((contacto) => contacto.telefono || '')
       .filter(Boolean)
-      .map((phone) => phone.startsWith('+') ? phone : `+56${phone}`)
+      .map((telefono) => telefono.startsWith('+') ? telefono : `+56${telefono}`)
       .join(',');
-    if (!recipients) {
-      showAvisoStatus('No hay números de teléfono válidos en tus contactos.', true);
+    if (!destinatarios) {
+      mostrarEstado(estado, 'No hay números de teléfono válidos en tus contactos.', true);
       return;
     }
 
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const separator = isIOS ? '&body=' : '?body=';
-    window.location.href = `sms:${recipients}${separator}${encodeURIComponent(text)}`;
+    const esIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const separador = esIOS ? '&body=' : '?body=';
+    window.location.href = `sms:${destinatarios}${separador}${encodeURIComponent(mensaje.value.trim())}`;
   });
 
-  copyAction.addEventListener('click', async () => {
-    if (!validate()) return;
-    const text = message.value.trim();
+  botonCopiar.addEventListener('click', async () => {
+    if (!validar()) return;
     try {
-      await navigator.clipboard.writeText(text);
-      showAvisoStatus('Mensaje copiado.');
+      await navigator.clipboard.writeText(mensaje.value.trim());
+      mostrarEstado(estado, 'Mensaje copiado.');
     } catch (error) {
-      showAvisoStatus(`No se pudo copiar el aviso: ${error.message}`, true);
+      mostrarEstado(estado, `No se pudo copiar el aviso: ${error.message}`, true);
     }
   });
 
-  validate();
+  validar();
 }
 
-initializeAviso();
+// Contactos (contactos.html)
 
-const CONTACTOS_STORAGE_KEY = 'a-salvo-contactos';
-
-function initializeContactos() {
+function iniciarContactos() {
   const form = document.getElementById('form-contacto');
   if (!form) return;
 
@@ -280,14 +252,8 @@ function initializeContactos() {
   const lista = document.getElementById('lista-contactos');
   const estado = document.getElementById('contactos-estado');
 
-  function cargarContactos() {
-    const guardados = JSON.parse(localStorage.getItem(CONTACTOS_STORAGE_KEY) || '[]');
-    if (!Array.isArray(guardados)) throw new Error('La lista guardada no tiene el formato esperado.');
-    return guardados;
-  }
-
   function mostrarContactos() {
-    const contactos = cargarContactos();
+    const contactos = leerContactos();
     lista.replaceChildren();
 
     if (contactos.length === 0) {
@@ -334,13 +300,13 @@ function initializeContactos() {
     if (!nombreValido || !telefonoValido) return;
 
     try {
-      const contactos = cargarContactos();
+      const contactos = leerContactos();
       contactos.push({
         id: `${Date.now()}`,
         nombre,
         telefono
       });
-      localStorage.setItem(CONTACTOS_STORAGE_KEY, JSON.stringify(contactos));
+      localStorage.setItem(CLAVE_CONTACTOS, JSON.stringify(contactos));
       form.reset();
       mostrarContactos();
       nombreInput.focus();
@@ -360,142 +326,95 @@ function initializeContactos() {
   }
 }
 
-initializeContactos();
+// Plan familiar (plan_familiar.html)
 
-const PLAN_STORAGE_KEY = 'a-salvo-plan-familiar';
-const PLAN_STORAGE_ALIASES = ['a-salvo-plan'];
-
-function initializePlanFamiliar() {
+function iniciarPlanFamiliar() {
   const form = document.querySelector('[data-plan-form]');
   if (!form) return;
 
-  const meetingInput = form.querySelector('[data-punto-encuentro]');
-  const tasksContainer = form.querySelector('[data-plan-tareas]');
-  const counter = form.querySelector('[data-plan-contador]');
-  const noContactsButton = form.querySelector('[data-plan-sin-contactos]');
-  const status = document.querySelector('[data-plan-status]');
+  const puntoEncuentro = form.querySelector('[data-punto-encuentro]');
+  const contenedorTareas = form.querySelector('[data-plan-tareas]');
+  const contador = form.querySelector('[data-plan-contador]');
+  const botonSinContactos = form.querySelector('[data-plan-sin-contactos]');
+  const estado = document.querySelector('[data-plan-status]');
 
-  let contacts = [];
-  let savedPlan = null;
-
+  let contactos = [];
+  let planGuardado = null;
   try {
-    const storedContacts = JSON.parse(localStorage.getItem(CONTACTOS_STORAGE_KEY) || '[]');
-    if (Array.isArray(storedContacts)) contacts = storedContacts;
-
-    const storedPlan = JSON.parse(
-      localStorage.getItem(PLAN_STORAGE_KEY)
-        || PLAN_STORAGE_ALIASES.map((key) => localStorage.getItem(key)).find(Boolean)
-        || 'null'
-    );
-    if (storedPlan && typeof storedPlan === 'object') savedPlan = storedPlan;
+    contactos = leerContactos();
+    planGuardado = JSON.parse(localStorage.getItem(CLAVE_PLAN) || 'null');
   } catch (error) {
-    showPlanStatus(`No se pudo leer el plan guardado: ${error.message}`, true);
+    mostrarEstado(estado, `No se pudo leer el plan guardado: ${error.message}`, true);
   }
 
-  meetingInput.value = savedPlan?.puntoEncuentro
-    || savedPlan?.encuentro
-    || '';
-
-  function showPlanStatus(text, isError = false) {
-    if (!status) return;
-    status.textContent = text;
-    status.classList.remove('visually-hidden');
-    status.classList.toggle('text-danger', isError);
-    status.classList.toggle('text-success', !isError);
-  }
-
-  function clearPlanStatus() {
-    if (!status) return;
-    status.textContent = '';
-    status.classList.add('visually-hidden');
-    status.classList.remove('text-danger', 'text-success');
-  }
-
-  const savedTasks = new Map(
-    ((savedPlan?.tareas || savedPlan?.tasks || [])).map((assignment) => [
-      String(assignment.contactoId || assignment.id || assignment.nombre || ''),
-      assignment.tarea || assignment.task || ''
-    ])
+  puntoEncuentro.value = planGuardado?.puntoEncuentro || '';
+  const tareasGuardadas = new Map(
+    (planGuardado?.tareas || []).map((asignacion) => [asignacion.contactoId, asignacion.tarea])
   );
 
-  tasksContainer.replaceChildren();
-  if (contacts.length === 0) {
-    tasksContainer.innerHTML = '<p class="text-secondary mb-0">No tienes contactos registrados todavía.</p>';
-    noContactsButton.hidden = false;
+  if (contactos.length === 0) {
+    contenedorTareas.innerHTML = '<p class="text-secondary mb-0">No tienes contactos registrados todavía.</p>';
   } else {
-    noContactsButton.hidden = true;
+    contenedorTareas.replaceChildren();
   }
+  botonSinContactos.hidden = contactos.length > 0;
+  contador.textContent = `${contactos.length} ${contactos.length === 1 ? 'contacto' : 'contactos'}`;
 
-  counter.textContent = `${contacts.length} ${contacts.length === 1 ? 'contacto' : 'contactos'}`;
+  contactos.forEach((contacto, indice) => {
+    const contenedor = document.createElement('div');
+    contenedor.className = 'mb-3';
 
-  contacts.forEach((contact, index) => {
-    const name = contact.nombre || contact.name || `Contacto ${index + 1}`;
-    const id = String(contact.id || contact.nombre || contact.name || `contacto-${index}`);
-    const wrapper = document.createElement('div');
-    wrapper.className = 'mb-3';
+    const etiqueta = document.createElement('label');
+    etiqueta.className = 'form-label fw-semibold';
+    etiqueta.htmlFor = `plan-tarea-${indice}`;
+    etiqueta.textContent = contacto.nombre;
 
-    const label = document.createElement('label');
-    label.className = 'form-label fw-semibold';
-    label.htmlFor = `plan-tarea-${index}`;
-    label.textContent = name;
+    const tarea = document.createElement('input');
+    tarea.type = 'text';
+    tarea.className = 'form-control';
+    tarea.id = `plan-tarea-${indice}`;
+    tarea.maxLength = 120;
+    tarea.dataset.contactoId = contacto.id;
+    tarea.placeholder = 'Ej.: Llevar botiquín';
+    tarea.value = tareasGuardadas.get(contacto.id) || '';
 
-    const taskInput = document.createElement('input');
-    taskInput.type = 'text';
-    taskInput.className = 'form-control';
-    taskInput.id = `plan-tarea-${index}`;
-    taskInput.maxLength = 120;
-    taskInput.dataset.contactoId = id;
-    taskInput.dataset.planTarea = '';
-    taskInput.placeholder = 'Ej.: Llevar botiquín';
-    taskInput.value = savedTasks.get(id) || '';
-
-    wrapper.append(label, taskInput);
-    tasksContainer.append(wrapper);
+    contenedor.append(etiqueta, tarea);
+    contenedorTareas.append(contenedor);
   });
 
-  meetingInput.addEventListener('input', () => {
-    meetingInput.classList.remove('is-invalid');
-    clearPlanStatus();
+  puntoEncuentro.addEventListener('input', () => {
+    puntoEncuentro.classList.remove('is-invalid');
+    limpiarEstado(estado);
   });
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
 
-    const meeting = meetingInput.value.trim();
-    meetingInput.classList.toggle('is-invalid', !meeting);
-    if (!meeting) {
-      meetingInput.focus();
-      showPlanStatus('Completa el punto de encuentro antes de guardar.', true);
+    const encuentro = puntoEncuentro.value.trim();
+    puntoEncuentro.classList.toggle('is-invalid', !encuentro);
+    if (!encuentro) {
+      puntoEncuentro.focus();
+      mostrarEstado(estado, 'Completa el punto de encuentro antes de guardar.', true);
       return;
     }
 
     if (!window.confirm('¿Guardar el plan familiar?')) return;
 
-    const tareas = [...form.querySelectorAll('[data-plan-tarea]')].map((input) => {
-      const contact = contacts.find((item, index) => {
-        const id = String(item.id || item.nombre || item.name || `contacto-${index}`);
-        return id === input.dataset.contactoId;
-      });
-      return {
-        contactoId: input.dataset.contactoId,
-        nombre: contact?.nombre || contact?.name || '',
-        tarea: input.value.trim()
-      };
-    });
-
-    const plan = {
-      puntoEncuentro: meeting,
-      tareas
-    };
+    const tareas = [...contenedorTareas.querySelectorAll('input')].map((input) => ({
+      contactoId: input.dataset.contactoId,
+      tarea: input.value.trim()
+    }));
 
     try {
-      localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plan));
-      PLAN_STORAGE_ALIASES.forEach((key) => localStorage.setItem(key, JSON.stringify(plan)));
-      showPlanStatus('Plan familiar guardado correctamente.');
+      localStorage.setItem(CLAVE_PLAN, JSON.stringify({ puntoEncuentro: encuentro, tareas }));
+      mostrarEstado(estado, 'Plan familiar guardado correctamente.');
     } catch (error) {
-      showPlanStatus(`No se pudo guardar el plan familiar: ${error.message}`, true);
+      mostrarEstado(estado, `No se pudo guardar el plan familiar: ${error.message}`, true);
     }
   });
 }
 
-initializePlanFamiliar();
+iniciarKit();
+iniciarAviso();
+iniciarContactos();
+iniciarPlanFamiliar();

@@ -17,7 +17,7 @@ body {
   align-items: center;
   justify-content: center;
 }
-.btn-circle-lg { width: 9rem; aspect-ratio: 1; }
+.btn-circle-lg { width: 9rem; }
 .bottom-nav {
   display: flex;
   justify-content: space-around;
