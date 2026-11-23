@@ -45,13 +45,15 @@ body {
 
 .bottom-nav__item {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
   color: var(--as-texto-sec);
   font-weight: 600;
-  font-size: .9rem;
+  font-size: .75rem;
+  white-space: nowrap;
   text-decoration: none;
 }
 
@@ -62,8 +64,13 @@ body {
 .bottom-nav__item i {
   font-size: 1.5rem;
   line-height: 1;
-  padding: 6px 22px;
+  padding: 4px 14px;
   border-radius: 999px;
+}
+
+@media (min-width: 576px) {
+  .bottom-nav__item { font-size: .9rem; }
+  .bottom-nav__item i { padding: 6px 22px; }
 }
 
 .bottom-nav__item.active {
