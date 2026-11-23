@@ -7,13 +7,16 @@
     <title>A Salvo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap">
     <link rel="stylesheet" href="css/tema.css">
     <link rel="stylesheet" href="css/estilos.css">
   </head>
 
   <body class="d-flex flex-column">
     <main class="container py-5">
-      <h1 class="mb-4"><i class="bi bi-check-square-fill text-primary"></i> A Salvo</h1>
+      <h1 class="mb-4"><i class="bi bi-check-square-fill text-primary" aria-hidden="true"></i> A Salvo</h1>
     </main>
     <div class="container flex-grow-1 d-flex flex-column justify-content-center align-items-center pb-5">
       <h2 class="mb-5">Avísales que estás bien</h2>
@@ -31,7 +34,7 @@
           <div class="progress" role="progressbar" aria-label="Avance del kit" aria-valuemin="0" aria-valuemax="14" aria-valuenow="0">
             <div class="progress-bar" data-kit-bar style="width: 0%"></div>
           </div>
-          <a class="btn btn-outline-primary btn-sm mt-3" href="kit.html">Revisar mi kit</a>
+          <a class="btn btn-outline-primary mt-3" href="kit.html">Revisar mi kit</a>
         </div>
       </section>
       <p class="visually-hidden" data-kit-status role="status" aria-live="polite"></p>
