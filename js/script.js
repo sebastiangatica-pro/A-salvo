@@ -186,7 +186,16 @@ function iniciarAviso() {
 
   frasesRapidas.forEach((boton) => {
     boton.addEventListener('click', () => {
-      mensaje.value = boton.dataset.avisoFrase;
+      const mensajeActual = mensaje.value.trim();
+      const separador = mensajeActual ? ' ' : '';
+      const mensajeNuevo = `${mensajeActual}${separador}${boton.dataset.avisoFrase}`;
+
+      if (mensajeNuevo.length > AVISO_LARGO_MAXIMO) {
+        mostrarEstado(estado, `No se agregó la frase: el mensaje no puede superar ${AVISO_LARGO_MAXIMO} caracteres.`, true);
+        return;
+      }
+
+      mensaje.value = mensajeNuevo;
       mensaje.dispatchEvent(new Event('input'));
     });
   });
