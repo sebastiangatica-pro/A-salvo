@@ -275,10 +275,17 @@ function iniciarContactos() {
   const estadoModalEliminar = modalEliminar.querySelector('[data-eliminar-estado]');
   const botonConfirmarEliminar = modalEliminar.querySelector('[data-confirmar-eliminar]');
   const instanciaModalEliminar = bootstrap.Modal.getOrCreateInstance(modalEliminar);
+  const toastContacto = document.getElementById('toast-contacto');
+  const instanciaToast = bootstrap.Toast.getOrCreateInstance(toastContacto);
   let idEnEdicion = null;
   let contactoAEliminar = null;
   let enfocarListaTrasEliminar = false;
   let botonQueAbrioModal = null;
+
+  function avisar(texto) {
+    toastContacto.querySelector('.toast-body').textContent = texto;
+    instanciaToast.show();
+  }
 
   function cancelarEdicion() {
     idEnEdicion = null;
@@ -441,8 +448,11 @@ function iniciarContactos() {
       localStorage.setItem(CLAVE_CONTACTOS, JSON.stringify(contactos));
       cancelarEdicion();
       mostrarContactos();
-      mostrarEstado(estado, estabaEditando ? 'Contacto actualizado.' : 'Contacto guardado.');
-      if (!estabaEditando) nombreInput.focus();
+      avisar(estabaEditando ? 'Contacto actualizado.' : 'Contacto guardado.');
+      const tarjeta = lista.querySelector(`[data-contacto-id="${contacto.id}"]`).closest('.card');
+      tarjeta.classList.add('border-primary', 'border-2');
+      tarjeta.scrollIntoView({ block: 'center' });
+      setTimeout(() => tarjeta.classList.remove('border-primary', 'border-2'), 2000);
     } catch (error) {
       mostrarEstado(estado, `No se pudo guardar el contacto: ${error.message}`, true);
     }
@@ -491,7 +501,7 @@ function iniciarContactos() {
       enfocarListaTrasEliminar = true;
       instanciaModalEliminar.hide();
       mostrarContactos();
-      mostrarEstado(estado, 'Contacto eliminado.');
+      avisar('Contacto eliminado.');
     } catch (error) {
       estadoModalEliminar.textContent = `No se pudo eliminar el contacto: ${error.message}`;
     }
