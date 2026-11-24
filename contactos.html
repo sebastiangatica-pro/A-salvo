@@ -19,36 +19,43 @@
       <h1 class="mb-2">Contactos</h1>
       <p class="text-secondary mb-4">Guarda a las personas a quienes avisarás en una emergencia.</p>
 
-      <section class="card mb-4" aria-labelledby="agregar-contacto-titulo">
-        <div class="card-body">
-          <h2 class="h5 mb-3" id="agregar-contacto-titulo">Agregar contacto</h2>
-          <form id="form-contacto" novalidate>
-            <div class="mb-3">
-              <label for="nombre" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="nombre" maxlength="80" required aria-describedby="error-nombre">
-              <div class="invalid-feedback" id="error-nombre">Ingresa el nombre del contacto.</div>
-            </div>
+      <div class="row g-4">
+        <div class="col-12 col-lg-6">
+          <section class="card" aria-labelledby="agregar-contacto-titulo">
+            <div class="card-body">
+              <h2 class="h5 mb-3" id="agregar-contacto-titulo">Agregar contacto</h2>
+              <form id="form-contacto" novalidate>
+                <div class="mb-3">
+                  <label for="nombre" class="form-label">Nombre</label>
+                  <input type="text" class="form-control" id="nombre" maxlength="80" required aria-describedby="error-nombre">
+                  <div class="invalid-feedback" id="error-nombre">Ingresa el nombre del contacto.</div>
+                </div>
 
-            <div class="mb-3">
-              <label for="telefono" class="form-label">Teléfono celular</label>
-              <input type="tel" class="form-control" id="telefono" inputmode="numeric" maxlength="9" placeholder="912345678" required aria-describedby="ayuda-telefono error-telefono">
-              <div class="form-text" id="ayuda-telefono">Ingresa 9 dígitos, comenzando por 9.</div>
-              <div class="invalid-feedback" id="error-telefono">El teléfono debe tener 9 dígitos y comenzar por 9.</div>
-            </div>
+                <div class="mb-3">
+                  <label for="telefono" class="form-label">Teléfono celular</label>
+                  <input type="tel" class="form-control" id="telefono" inputmode="numeric" maxlength="9" placeholder="912345678" required aria-describedby="ayuda-telefono error-telefono">
+                  <div class="form-text" id="ayuda-telefono">Ingresa 9 dígitos, comenzando por 9.</div>
+                  <div class="invalid-feedback" id="error-telefono">El teléfono debe tener 9 dígitos y comenzar por 9.</div>
+                </div>
 
-            <button type="submit" class="btn btn-primary w-100">Guardar contacto</button>
-          </form>
+                <button type="submit" class="btn btn-primary w-100">Guardar contacto</button>
+              </form>
+            </div>
+          </section>
         </div>
-      </section>
 
-      <section aria-labelledby="mis-contactos-titulo">
-        <h2 class="h5 mb-3" id="mis-contactos-titulo">Mis contactos</h2>
-        <p id="contactos-estado" class="text-secondary" role="status" aria-live="polite"></p>
-        <div id="lista-contactos" class="row g-3"></div>
-      </section>
+        <div class="col-12 col-lg-6">
+          <section aria-labelledby="mis-contactos-titulo">
+            <h2 class="h5 mb-3" id="mis-contactos-titulo">Mis contactos</h2>
+            <p id="contactos-estado" class="text-secondary" role="status" aria-live="polite"></p>
+            <div id="lista-contactos" class="row g-3"></div>
+          </section>
+        </div>
+      </div>
     </main>
 
     <nav class="bottom-nav fixed-bottom" aria-label="Navegación principal">
+      <p class="bottom-nav__marca d-none d-lg-flex"><i class="bi bi-check-square-fill" aria-hidden="true"></i> A Salvo</p>
       <a class="bottom-nav__item" href="index.html">
         <i class="bi bi-house" aria-hidden="true"></i><span>Inicio</span>
       </a>
@@ -64,6 +71,7 @@
       <a class="bottom-nav__item" href="mi_aviso.html">
         <i class="bi bi-chat-text" aria-hidden="true"></i><span>Mi aviso</span>
       </a>
+      <p class="bottom-nav__nota d-none d-lg-block">Tus datos se guardan solo en este navegador. Sin cuentas ni contraseñas.</p>
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
