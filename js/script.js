@@ -165,7 +165,7 @@ function iniciarAviso() {
   } catch (error) {
     mostrarEstado(estado, `No se pudo leer el aviso guardado: ${error.message}`, true);
   }
-  mensaje.value = mensajeGuardado.slice(0, AVISO_LARGO_MAXIMO) || AVISO_POR_DEFECTO;
+  mensaje.value = mensajeGuardado.trim() ? mensajeGuardado.slice(0, AVISO_LARGO_MAXIMO) : AVISO_POR_DEFECTO;
 
   function validar() {
     const valido = mensaje.value.trim().length > 0;
@@ -183,8 +183,8 @@ function iniciarAviso() {
   }
 
   mensaje.addEventListener('input', () => {
-    validar();
     limpiarEstado(estado);
+    if (!validar()) return;
     try {
       localStorage.setItem(CLAVE_AVISO, mensaje.value);
     } catch (error) {
@@ -194,16 +194,7 @@ function iniciarAviso() {
 
   frasesRapidas.forEach((boton) => {
     boton.addEventListener('click', () => {
-      const mensajeActual = mensaje.value.trim();
-      const separador = mensajeActual ? ' ' : '';
-      const mensajeNuevo = `${mensajeActual}${separador}${boton.dataset.avisoFrase}`;
-
-      if (mensajeNuevo.length > AVISO_LARGO_MAXIMO) {
-        mostrarEstado(estado, `No se agregó la frase: el mensaje no puede superar ${AVISO_LARGO_MAXIMO} caracteres.`, true);
-        return;
-      }
-
-      mensaje.value = mensajeNuevo;
+      mensaje.value = boton.dataset.avisoFrase;
       mensaje.dispatchEvent(new Event('input'));
     });
   });
@@ -243,9 +234,11 @@ function iniciarAviso() {
       return;
     }
 
+    const texto = encodeURIComponent(mensaje.value.trim());
     const esIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const separador = esIOS ? '&body=' : '?body=';
-    window.location.href = `sms:${destinatarios}${separador}${encodeURIComponent(mensaje.value.trim())}`;
+    window.location.href = esIOS
+      ? `sms:/open?addresses=${destinatarios}&body=${texto}`
+      : `sms:${destinatarios}?body=${texto}`;
   });
 
   botonCopiar.addEventListener('click', async () => {
@@ -605,6 +598,9 @@ function iniciarPlanFamiliar() {
     const tareaOtra = document.createElement('input');
     tareaOtra.type = 'text';
     tareaOtra.className = 'form-control mt-2';
+    tareaOtra.id = `plan-tarea-otra-${indice}`;
+    tareaOtra.setAttribute('aria-label', `Otra tarea para ${contacto.nombre}`);
+    tareaOtra.setAttribute('aria-describedby', `${tareaOtra.id}-error`);
     tareaOtra.maxLength = 120;
     tareaOtra.placeholder = 'Escribe la otra tarea';
     tareaOtra.dataset.tareaOtra = '';
@@ -612,10 +608,20 @@ function iniciarPlanFamiliar() {
     tareaOtra.hidden = !tareaEsOtra;
     tarea.addEventListener('change', () => {
       tareaOtra.hidden = tarea.value !== 'otra';
+      tareaOtra.classList.remove('is-invalid');
       if (!tareaOtra.hidden) tareaOtra.focus();
     });
+    tareaOtra.addEventListener('input', () => {
+      tareaOtra.classList.remove('is-invalid');
+      limpiarEstado(estado);
+    });
 
-    contenedor.append(etiqueta, tarea, tareaOtra);
+    const errorOtra = document.createElement('div');
+    errorOtra.className = 'invalid-feedback';
+    errorOtra.id = `${tareaOtra.id}-error`;
+    errorOtra.textContent = 'Escribe la tarea o elige otra opción.';
+
+    contenedor.append(etiqueta, tarea, tareaOtra, errorOtra);
     contenedorTareas.append(contenedor);
   });
 
@@ -632,6 +638,15 @@ function iniciarPlanFamiliar() {
     if (!encuentro) {
       puntoEncuentro.focus();
       mostrarEstado(estado, 'Completa el punto de encuentro antes de guardar.', true);
+      return;
+    }
+
+    const otraVacia = [...contenedorTareas.querySelectorAll('[data-tarea-otra]')]
+      .find((input) => !input.hidden && !input.value.trim());
+    if (otraVacia) {
+      otraVacia.classList.add('is-invalid');
+      otraVacia.focus();
+      mostrarEstado(estado, 'Escribe la otra tarea antes de guardar.', true);
       return;
     }
 
