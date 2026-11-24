@@ -131,10 +131,8 @@ async function iniciarKit() {
 
     actualizarAvance();
   } catch (error) {
-    const pista = window.location.protocol === 'file:'
-      ? ' Abre el proyecto con Live Server o desde GitHub Pages; fetch no funciona al abrir el HTML con doble clic.'
-      : '';
-    mostrarEstado(estado, `No se pudo mostrar el kit. ${error.message}${pista}`, true);
+    console.error(error);
+    mostrarEstado(estado, 'No se pudo cargar el kit.', true);
   }
 }
 

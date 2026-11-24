@@ -85,6 +85,54 @@ body {
   --bs-btn-focus-shadow-rgb: 11, 107, 79;
 }
 
+/* Bootstrap fija #DC3545 (4,5:1 justo) y #6C757D en estos botones:
+   se usan los tokens del tema (Eliminar / Cancelar en Contactos) */
+.btn-danger {
+  --bs-btn-bg: var(--as-error);              /* 6,5:1 con texto blanco */
+  --bs-btn-border-color: var(--as-error);
+  --bs-btn-hover-bg: #8E2230;                /* 8,7:1 con texto blanco */
+  --bs-btn-hover-border-color: #8E2230;
+  --bs-btn-active-bg: #8E2230;
+  --bs-btn-active-border-color: #8E2230;
+  --bs-btn-disabled-bg: var(--as-error);
+  --bs-btn-disabled-border-color: var(--as-error);
+  --bs-btn-focus-shadow-rgb: 176, 42, 55;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: var(--as-error);           /* 6,5:1 sobre blanco */
+  --bs-btn-border-color: var(--as-error);
+  --bs-btn-hover-bg: var(--as-error);
+  --bs-btn-hover-border-color: var(--as-error);
+  --bs-btn-active-bg: #8E2230;
+  --bs-btn-active-border-color: #8E2230;
+  --bs-btn-disabled-color: var(--as-error);
+  --bs-btn-disabled-border-color: var(--as-error);
+  --bs-btn-focus-shadow-rgb: 176, 42, 55;
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--as-texto-sec);       /* 7,3:1 sobre blanco */
+  --bs-btn-border-color: var(--as-borde-control);
+  --bs-btn-hover-color: #FFFFFF;
+  --bs-btn-hover-bg: var(--as-texto-sec);
+  --bs-btn-hover-border-color: var(--as-texto-sec);
+  --bs-btn-active-color: #FFFFFF;
+  --bs-btn-active-bg: var(--as-texto);
+  --bs-btn-active-border-color: var(--as-texto);
+  --bs-btn-disabled-color: var(--as-texto-sec);
+  --bs-btn-disabled-border-color: var(--as-borde-control);
+  --bs-btn-focus-shadow-rgb: 74, 90, 84;
+}
+
+/* Cerrar modal: área táctil 44×44 px (Bootstrap deja 24–32 px).
+   .modal-header .btn-close: Bootstrap fija ahí su propio padding */
+.btn-close,
+.modal-header .btn-close {
+  --bs-btn-close-focus-shadow: 0 0 0 .25rem rgba(11, 107, 79, .25);
+  padding: .875rem; /* 1em + 2 × .875rem = 44 px */
+}
+
 .progress {
   --bs-progress-bg: var(--as-progreso-fondo);
   --bs-progress-bar-bg: var(--as-primario);
@@ -142,7 +190,8 @@ button:focus-visible,
 .btn:focus-visible,
 .form-control:focus-visible,
 .form-select:focus-visible,
-.form-check-input:focus-visible {
+.form-check-input:focus-visible,
+[tabindex="-1"]:not(.modal):focus-visible { /* ej. lista de contactos tras eliminar */
   outline: 3px solid var(--as-primario);
   outline-offset: 2px;
 }
