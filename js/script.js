@@ -150,6 +150,16 @@ function iniciarAviso() {
   const botonCopiar = document.querySelector('[data-aviso-copiar]');
   const estado = document.querySelector('[data-aviso-status]');
   const frasesRapidas = [...document.querySelectorAll('[data-aviso-frase]')];
+  const esCelular = window.matchMedia('(pointer: coarse)').matches
+    || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+  if (esCelular) {
+    botonSms.classList.replace('btn-outline-primary', 'btn-primary');
+    botonCopiar.classList.replace('btn-primary', 'btn-outline-primary');
+  } else {
+    botonCopiar.classList.replace('btn-outline-primary', 'btn-primary');
+    botonSms.classList.replace('btn-primary', 'btn-outline-primary');
+  }
 
   let mensajeGuardado = '';
   try {
@@ -211,8 +221,12 @@ function iniciarAviso() {
       return;
     }
 
-    if (contactos.length === 0) {
-      mostrarEstado(estado, 'Primero agrega contactos: ', true);
+    const contactosQueReciben = contactos.filter((contacto) => contacto.recibeAvisos !== false);
+
+    if (contactosQueReciben.length === 0) {
+      mostrarEstado(estado, contactos.length === 0
+        ? 'Primero agrega contactos: '
+        : 'Ningún contacto está marcado para recibir avisos. Revisa Contactos: ', true);
       const enlace = document.createElement('a');
       enlace.href = 'contactos.html';
       enlace.textContent = 'Ir a Contactos';
@@ -221,7 +235,7 @@ function iniciarAviso() {
       return;
     }
 
-    const destinatarios = contactos
+    const destinatarios = contactosQueReciben
       .map((contacto) => contacto.telefono || '')
       .filter(Boolean)
       .map((telefono) => telefono.startsWith('+') ? telefono : `+56${telefono}`)
