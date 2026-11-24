@@ -19,6 +19,11 @@ body {
 }
 .btn-circle-lg { width: 9rem; }
 
+.contacto-accion {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 .btn-pulse {
   animation: pulso 2s infinite;
 }
