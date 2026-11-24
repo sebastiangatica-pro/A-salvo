@@ -582,16 +582,42 @@ function iniciarPlanFamiliar() {
     etiqueta.htmlFor = `plan-tarea-${indice}`;
     etiqueta.textContent = contacto.nombre;
 
-    const tarea = document.createElement('input');
-    tarea.type = 'text';
-    tarea.className = 'form-control';
+    const tarea = document.createElement('select');
+    tarea.className = 'form-select';
     tarea.id = `plan-tarea-${indice}`;
-    tarea.maxLength = 120;
     tarea.dataset.contactoId = contacto.id;
-    tarea.placeholder = 'Ej.: Llevar botiquín';
-    tarea.value = tareasGuardadas.get(contacto.id) || '';
+    const opciones = [
+      ['', 'Sin tarea'],
+      ['Lleva el kit', 'Lleva el kit'],
+      ['Busca a los niños', 'Busca a los niños'],
+      ['Busca a la abuela/o', 'Busca a la abuela/o'],
+      ['Cierra gas y luz', 'Cierra gas y luz'],
+      ['otra', 'Otra…']
+    ];
+    const tareaGuardada = tareasGuardadas.get(contacto.id) || '';
+    const tareaEsOtra = tareaGuardada !== '' && !opciones.some(([valor]) => valor === tareaGuardada);
+    opciones.forEach(([valor, texto]) => {
+      const opcion = document.createElement('option');
+      opcion.value = valor;
+      opcion.textContent = texto;
+      tarea.append(opcion);
+    });
+    tarea.value = tareaEsOtra ? 'otra' : tareaGuardada;
 
-    contenedor.append(etiqueta, tarea);
+    const tareaOtra = document.createElement('input');
+    tareaOtra.type = 'text';
+    tareaOtra.className = 'form-control mt-2';
+    tareaOtra.maxLength = 120;
+    tareaOtra.placeholder = 'Escribe la otra tarea';
+    tareaOtra.dataset.tareaOtra = '';
+    tareaOtra.value = tareaEsOtra ? tareaGuardada : '';
+    tareaOtra.hidden = !tareaEsOtra;
+    tarea.addEventListener('change', () => {
+      tareaOtra.hidden = tarea.value !== 'otra';
+      if (!tareaOtra.hidden) tareaOtra.focus();
+    });
+
+    contenedor.append(etiqueta, tarea, tareaOtra);
     contenedorTareas.append(contenedor);
   });
 
@@ -611,16 +637,17 @@ function iniciarPlanFamiliar() {
       return;
     }
 
-    if (!window.confirm('¿Guardar el plan familiar?')) return;
-
-    const tareas = [...contenedorTareas.querySelectorAll('input')].map((input) => ({
-      contactoId: input.dataset.contactoId,
-      tarea: input.value.trim()
-    }));
+    const tareas = [...contenedorTareas.querySelectorAll('select[data-contacto-id]')].map((select) => {
+      const tareaOtra = select.parentElement.querySelector('[data-tarea-otra]');
+      return {
+        contactoId: select.dataset.contactoId,
+        tarea: select.value === 'otra' ? tareaOtra.value.trim() : select.value
+      };
+    });
 
     try {
       localStorage.setItem(CLAVE_PLAN, JSON.stringify({ puntoEncuentro: encuentro, tareas }));
-      mostrarEstado(estado, 'Plan familiar guardado correctamente.');
+      mostrarEstado(estado, 'Plan familiar guardado.');
     } catch (error) {
       mostrarEstado(estado, `No se pudo guardar el plan familiar: ${error.message}`, true);
     }
@@ -646,17 +673,20 @@ function iniciarResumenContactos() {
     return;
   }
 
-  const total = contactos.length;
+  const contactosQueReciben = contactos.filter((contacto) => contacto.recibeAvisos !== false);
+  const total = contactosQueReciben.length;
   conteo.textContent = `${total} ${total === 1 ? 'contacto' : 'contactos'}`;
 
   if (total === 0) {
-    nombres.textContent = 'Aún no agregas contactos.';
+    nombres.textContent = contactos.length === 0
+      ? 'Agrega tu primer contacto.'
+      : 'Ningún contacto recibe avisos.';
     enlace.textContent = 'Agregar';
     enlace.setAttribute('aria-label', 'Agregar contactos');
     return;
   }
 
-  const primeros = contactos.slice(0, 2).map((contacto) => contacto.nombre);
+  const primeros = contactosQueReciben.slice(0, 2).map((contacto) => contacto.nombre);
   const restantes = total - primeros.length;
   nombres.textContent = restantes > 0
     ? `${primeros.join(', ')} y ${restantes} más`
