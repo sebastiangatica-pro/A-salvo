@@ -33,12 +33,25 @@
 
                 <div class="mb-3">
                   <label for="telefono" class="form-label">Teléfono celular</label>
-                  <input type="tel" class="form-control" id="telefono" inputmode="numeric" maxlength="9" placeholder="912345678" required aria-describedby="ayuda-telefono error-telefono">
+                  <input type="tel" class="form-control" id="telefono" inputmode="numeric" pattern="9[0-9]{8}" maxlength="9" placeholder="912345678" required aria-describedby="ayuda-telefono error-telefono">
                   <div class="form-text" id="ayuda-telefono">Ingresa 9 dígitos, comenzando por 9.</div>
-                  <div class="invalid-feedback" id="error-telefono">El teléfono debe tener 9 dígitos y comenzar por 9.</div>
+                  <div class="invalid-feedback" id="error-telefono">Ingresa el número telefónico.</div>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100">Guardar contacto</button>
+                <div class="mb-3">
+                  <label for="relacion" class="form-label">Relación <span class="text-secondary">(opcional)</span></label>
+                  <input type="text" class="form-control" id="relacion" maxlength="80">
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                  <input class="form-check-input" type="checkbox" role="switch" id="recibe-avisos" checked>
+                  <label class="form-check-label" for="recibe-avisos">Recibe avisos</label>
+                </div>
+
+                <div class="d-grid gap-2">
+                  <button type="submit" class="btn btn-primary w-100" id="guardar-contacto">Guardar contacto</button>
+                  <button type="button" class="btn btn-outline-secondary" id="cancelar-edicion" hidden>Cancelar</button>
+                </div>
               </form>
             </div>
           </section>
@@ -48,11 +61,30 @@
           <section aria-labelledby="mis-contactos-titulo">
             <h2 class="h5 mb-3" id="mis-contactos-titulo">Mis contactos</h2>
             <p id="contactos-estado" class="text-secondary" role="status" aria-live="polite"></p>
-            <div id="lista-contactos" class="row g-3"></div>
+            <div id="lista-contactos" class="row g-3" tabindex="-1"></div>
           </section>
         </div>
       </div>
     </main>
+
+    <div class="modal fade" id="modal-eliminar-contacto" tabindex="-1" aria-labelledby="modal-eliminar-titulo" aria-describedby="modal-eliminar-descripcion">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title h5" id="modal-eliminar-titulo">¿Eliminar contacto?</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <p id="modal-eliminar-descripcion" class="mb-2">Esta acción no se puede deshacer.</p>
+            <p class="small text-danger mb-0" data-eliminar-estado role="alert" aria-live="assertive"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-confirmar-eliminar>Eliminar</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <nav class="bottom-nav fixed-bottom" aria-label="Navegación principal">
       <p class="bottom-nav__marca d-none d-lg-flex"><i class="bi bi-check-square-fill" aria-hidden="true"></i> A Salvo</p>

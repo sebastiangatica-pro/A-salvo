@@ -271,8 +271,33 @@ function iniciarContactos() {
 
   const nombreInput = document.getElementById('nombre');
   const telefonoInput = document.getElementById('telefono');
+  const errorTelefono = document.getElementById('error-telefono');
+  const relacionInput = document.getElementById('relacion');
+  const recibeAvisosInput = document.getElementById('recibe-avisos');
+  const tituloFormulario = document.getElementById('agregar-contacto-titulo');
+  const botonGuardar = document.getElementById('guardar-contacto');
+  const botonCancelar = document.getElementById('cancelar-edicion');
   const lista = document.getElementById('lista-contactos');
   const estado = document.getElementById('contactos-estado');
+  const modalEliminar = document.getElementById('modal-eliminar-contacto');
+  const tituloModalEliminar = document.getElementById('modal-eliminar-titulo');
+  const estadoModalEliminar = modalEliminar.querySelector('[data-eliminar-estado]');
+  const botonConfirmarEliminar = modalEliminar.querySelector('[data-confirmar-eliminar]');
+  const instanciaModalEliminar = bootstrap.Modal.getOrCreateInstance(modalEliminar);
+  let idEnEdicion = null;
+  let contactoAEliminar = null;
+  let enfocarListaTrasEliminar = false;
+  let botonQueAbrioModal = null;
+
+  function cancelarEdicion() {
+    idEnEdicion = null;
+    form.reset();
+    nombreInput.classList.remove('is-invalid');
+    telefonoInput.classList.remove('is-invalid');
+    tituloFormulario.textContent = 'Agregar contacto';
+    botonGuardar.textContent = 'Guardar contacto';
+    botonCancelar.hidden = true;
+  }
 
   function mostrarContactos() {
     const contactos = leerContactos();
@@ -303,42 +328,208 @@ function iniciarContactos() {
       telefono.textContent = contacto.telefono;
 
       cuerpo.append(titulo, telefono);
+
+      if (contacto.relacion) {
+        const relacion = document.createElement('p');
+        relacion.className = 'card-text mb-0';
+        relacion.textContent = `Relación: ${contacto.relacion}`;
+        cuerpo.append(relacion);
+      }
+
+      const recibeAvisos = document.createElement('p');
+      recibeAvisos.className = 'card-text mb-0';
+      recibeAvisos.textContent = `Recibe avisos: ${contacto.recibeAvisos === false ? 'No' : 'Sí'}`;
+      cuerpo.append(recibeAvisos);
+
+      const acciones = document.createElement('div');
+      acciones.className = 'd-flex flex-wrap gap-2 mt-3';
+
+      const botonEditar = document.createElement('button');
+      botonEditar.type = 'button';
+      botonEditar.className = 'btn btn-outline-primary contacto-accion';
+      botonEditar.dataset.accion = 'editar';
+      botonEditar.dataset.contactoId = contacto.id;
+      botonEditar.setAttribute('aria-label', `Editar a ${contacto.nombre}`);
+      botonEditar.textContent = 'Editar';
+
+      const botonEliminar = document.createElement('button');
+      botonEliminar.type = 'button';
+      botonEliminar.className = 'btn btn-outline-danger contacto-accion';
+      botonEliminar.dataset.accion = 'eliminar';
+      botonEliminar.dataset.contactoId = contacto.id;
+      botonEliminar.setAttribute('aria-label', `Eliminar a ${contacto.nombre}`);
+      botonEliminar.textContent = 'Eliminar';
+
+      acciones.append(botonEditar, botonEliminar);
+      cuerpo.append(acciones);
       tarjeta.append(cuerpo);
       columna.append(tarjeta);
       lista.append(columna);
     });
   }
 
+  function editarContacto(contacto) {
+    idEnEdicion = contacto.id;
+    nombreInput.value = contacto.nombre || '';
+    telefonoInput.value = contacto.telefono || '';
+    relacionInput.value = contacto.relacion || '';
+    recibeAvisosInput.checked = contacto.recibeAvisos !== false;
+    tituloFormulario.textContent = 'Editar contacto';
+    botonGuardar.textContent = 'Guardar cambios';
+    botonCancelar.hidden = false;
+    nombreInput.focus();
+  }
+
+  lista.addEventListener('click', (event) => {
+    const boton = event.target.closest('button[data-accion]');
+    if (!boton || !lista.contains(boton)) return;
+
+    try {
+      const contacto = leerContactos().find((item) => item.id === boton.dataset.contactoId);
+      if (!contacto) {
+        mostrarEstado(estado, 'No se encontró el contacto seleccionado.', true);
+        return;
+      }
+
+      if (boton.dataset.accion === 'editar') {
+        editarContacto(contacto);
+        limpiarEstado(estado);
+        return;
+      }
+
+      contactoAEliminar = contacto;
+      botonQueAbrioModal = boton;
+      estadoModalEliminar.textContent = '';
+      tituloModalEliminar.textContent = `¿Eliminar a ${contacto.nombre}?`;
+      instanciaModalEliminar.show(boton);
+    } catch (error) {
+      mostrarEstado(estado, `No se pudo abrir la acción del contacto: ${error.message}`, true);
+    }
+  });
+
+  botonCancelar.addEventListener('click', cancelarEdicion);
+
   form.addEventListener('submit', (event) => {
     event.preventDefault();
 
     const nombre = nombreInput.value.trim();
     const telefono = telefonoInput.value.trim();
+    const relacion = relacionInput.value.trim();
     const nombreValido = nombre.length > 0;
     const telefonoValido = /^9[0-9]{8}$/.test(telefono);
 
     nombreInput.classList.toggle('is-invalid', !nombreValido);
     telefonoInput.classList.toggle('is-invalid', !telefonoValido);
-    if (!nombreValido || !telefonoValido) return;
+    errorTelefono.textContent = telefono
+      ? 'Número telefónico inválido'
+      : 'Ingresa el número telefónico.';
+    if (!nombreValido || !telefonoValido) {
+      (nombreValido ? telefonoInput : nombreInput).focus();
+      return;
+    }
 
     try {
+      const estabaEditando = idEnEdicion !== null;
       const contactos = leerContactos();
-      contactos.push({
-        id: `${Date.now()}`,
+      const contacto = {
+        id: idEnEdicion || `${Date.now()}`,
         nombre,
-        telefono
-      });
+        telefono,
+        relacion,
+        recibeAvisos: recibeAvisosInput.checked
+      };
+      if (idEnEdicion) {
+        const indice = contactos.findIndex((item) => item.id === idEnEdicion);
+        if (indice === -1) {
+          throw new Error('El contacto que intentas editar ya no existe.');
+        }
+        contactos[indice] = { ...contactos[indice], ...contacto };
+      } else {
+        contactos.push(contacto);
+      }
       localStorage.setItem(CLAVE_CONTACTOS, JSON.stringify(contactos));
-      form.reset();
+      cancelarEdicion();
       mostrarContactos();
-      nombreInput.focus();
+      mostrarEstado(estado, estabaEditando ? 'Contacto actualizado.' : 'Contacto guardado.');
+      if (!estabaEditando) nombreInput.focus();
     } catch (error) {
-      estado.textContent = `No se pudo guardar el contacto: ${error.message}`;
+      mostrarEstado(estado, `No se pudo guardar el contacto: ${error.message}`, true);
     }
   });
 
-  [nombreInput, telefonoInput].forEach((input) => {
+  botonConfirmarEliminar.addEventListener('click', () => {
+    if (!contactoAEliminar) return;
+
+    let planAnterior = null;
+    let planActualizado = false;
+    try {
+      const contactos = leerContactos();
+      const restantes = contactos.filter((contacto) => contacto.id !== contactoAEliminar.id);
+      if (restantes.length === contactos.length) {
+        throw new Error('El contacto seleccionado ya no existe.');
+      }
+
+      planAnterior = localStorage.getItem(CLAVE_PLAN);
+      if (planAnterior !== null) {
+        const plan = JSON.parse(planAnterior);
+        if (plan && typeof plan === 'object' && !Array.isArray(plan) && Array.isArray(plan.tareas)) {
+          const tareas = plan.tareas.filter((tarea) => tarea.contactoId !== contactoAEliminar.id);
+          if (tareas.length !== plan.tareas.length) {
+            plan.tareas = tareas;
+            localStorage.setItem(CLAVE_PLAN, JSON.stringify(plan));
+            planActualizado = true;
+          }
+        }
+      }
+
+      try {
+        localStorage.setItem(CLAVE_CONTACTOS, JSON.stringify(restantes));
+      } catch (error) {
+        if (planActualizado) {
+          try {
+            localStorage.setItem(CLAVE_PLAN, planAnterior);
+          } catch (errorRestauracion) {
+            throw new Error(`${error.message} Tampoco se pudo restaurar el plan: ${errorRestauracion.message}`);
+          }
+        }
+        throw error;
+      }
+
+      if (idEnEdicion === contactoAEliminar.id) cancelarEdicion();
+      contactoAEliminar = null;
+      enfocarListaTrasEliminar = true;
+      instanciaModalEliminar.hide();
+      mostrarContactos();
+      mostrarEstado(estado, 'Contacto eliminado.');
+    } catch (error) {
+      estadoModalEliminar.textContent = `No se pudo eliminar el contacto: ${error.message}`;
+    }
+  });
+
+  modalEliminar.addEventListener('hidden.bs.modal', () => {
+    contactoAEliminar = null;
+    if (enfocarListaTrasEliminar) {
+      enfocarListaTrasEliminar = false;
+      lista.focus();
+    } else if (botonQueAbrioModal && botonQueAbrioModal.isConnected) {
+      // Cancelar/cerrar: el foco vuelve al botón "Eliminar" que abrió el modal
+      botonQueAbrioModal.focus();
+    }
+    botonQueAbrioModal = null;
+  });
+
+  [nombreInput, relacionInput].forEach((input) => {
     input.addEventListener('input', () => input.classList.remove('is-invalid'));
+  });
+
+  telefonoInput.addEventListener('input', () => {
+    const telefono = telefonoInput.value.trim();
+    const esInvalido = telefono.length > 0 && !/^9[0-9]{8}$/.test(telefono);
+    telefonoInput.setCustomValidity(esInvalido ? 'Número telefónico inválido' : '');
+    errorTelefono.textContent = telefono.length > 0
+      ? 'Número telefónico inválido'
+      : 'Ingresa el número telefónico.';
+    if (telefonoInput.validity.valid) telefonoInput.classList.remove('is-invalid');
   });
 
   try {
