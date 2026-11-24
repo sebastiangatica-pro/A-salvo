@@ -80,3 +80,91 @@ body {
 .bottom-nav__item.active i {
   background: var(--as-verde-claro);
 }
+
+/* Escritorio (lg+): el menú pasa a barra lateral izquierda (mockup Escritorio) */
+@media (min-width: 992px) {
+  :root {
+    --sidebar-w: 260px;
+  }
+
+  body {
+    padding-bottom: 0;
+    padding-left: var(--sidebar-w);
+  }
+
+  main.container {
+    padding-inline: 2.5rem;
+  }
+
+  .bottom-nav {
+    top: 0;
+    bottom: auto;
+    right: auto;
+    width: var(--sidebar-w);
+    height: 100vh;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: .5rem;
+    padding: 2rem 1.25rem;
+    overflow-y: auto;
+    background: var(--as-texto);
+    border-top: 0;
+  }
+
+  .bottom-nav__marca {
+    align-items: center;
+    gap: .75rem;
+    margin: 0 0 1.5rem;
+    color: #FFFFFF;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .bottom-nav__marca i {
+    color: var(--as-verde-claro);
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .bottom-nav__item {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: .875rem;
+    min-height: 44px;
+    padding: .75rem 1rem;
+    border-radius: .75rem;
+    color: #E3EAE6; /* 13,8:1 sobre --as-texto */
+    font-size: 1rem;
+  }
+
+  .bottom-nav__item:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, .08);
+  }
+
+  .bottom-nav__item i,
+  .bottom-nav__item.active i {
+    padding: 0;
+    background: none;
+    font-size: 1.25rem;
+  }
+
+  .bottom-nav__item.active {
+    color: var(--as-texto);
+    background: var(--as-verde-claro);
+  }
+
+  /* El verde primario solo da 2,6:1 sobre el fondo oscuro */
+  .bottom-nav__item:focus-visible {
+    outline-color: var(--as-verde-claro);
+    outline-offset: 2px;
+  }
+
+  .bottom-nav__nota {
+    margin: auto 0 0;
+    color: #B5C2BC; /* 9,2:1 sobre --as-texto */
+    font-size: .875rem;
+  }
+}

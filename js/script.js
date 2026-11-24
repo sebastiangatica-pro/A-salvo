@@ -286,7 +286,7 @@ function iniciarContactos() {
     estado.textContent = '';
     contactos.forEach((contacto) => {
       const columna = document.createElement('div');
-      columna.className = 'col-12 col-md-6';
+      columna.className = 'col-12 col-md-6 col-lg-12 col-xl-6';
 
       const tarjeta = document.createElement('article');
       tarjeta.className = 'card h-100';
@@ -436,7 +436,46 @@ function iniciarPlanFamiliar() {
   });
 }
 
+// Resumen de contactos (index.html)
+
+function iniciarResumenContactos() {
+  const seccion = document.querySelector('[data-contactos-resumen]');
+  if (!seccion) return;
+
+  const conteo = seccion.querySelector('[data-contactos-count]');
+  const nombres = seccion.querySelector('[data-contactos-nombres]');
+  const enlace = seccion.querySelector('[data-contactos-enlace]');
+  const estado = seccion.querySelector('[data-contactos-status]');
+
+  let contactos;
+  try {
+    contactos = leerContactos();
+  } catch (error) {
+    mostrarEstado(estado, `No se pudieron cargar los contactos: ${error.message}`, true);
+    return;
+  }
+
+  const total = contactos.length;
+  conteo.textContent = `${total} ${total === 1 ? 'contacto' : 'contactos'}`;
+
+  if (total === 0) {
+    nombres.textContent = 'Aún no agregas contactos.';
+    enlace.textContent = 'Agregar';
+    enlace.setAttribute('aria-label', 'Agregar contactos');
+    return;
+  }
+
+  const primeros = contactos.slice(0, 2).map((contacto) => contacto.nombre);
+  const restantes = total - primeros.length;
+  nombres.textContent = restantes > 0
+    ? `${primeros.join(', ')} y ${restantes} más`
+    : primeros.join(' y ');
+  enlace.textContent = 'Editar';
+  enlace.setAttribute('aria-label', 'Editar contactos');
+}
+
 iniciarKit();
 iniciarAviso();
+iniciarResumenContactos();
 iniciarContactos();
 iniciarPlanFamiliar();

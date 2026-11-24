@@ -19,68 +19,75 @@
       <h1 class="mb-4">Mi aviso</h1>
       <p class="text-secondary mb-4">Personaliza el mensaje que compartirás con tus contactos.</p>
 
-      <section class="card mb-4" aria-labelledby="aviso-mensaje-titulo">
-        <div class="card-body">
-          <h2 class="h5 mb-3" id="aviso-mensaje-titulo">Mensaje</h2>
-          <label class="form-label" for="aviso-mensaje">Escribe tu aviso</label>
-          <textarea
-            class="form-control"
-            id="aviso-mensaje"
-            name="mensaje"
-            rows="5"
-            maxlength="160"
-            data-aviso-mensaje
-            aria-describedby="aviso-contador aviso-validacion"
-          ></textarea>
-          <div class="d-flex justify-content-between align-items-start mt-2">
-            <p class="small mb-0" id="aviso-validacion" data-aviso-validacion aria-live="polite">
-              El mensaje no puede estar vacío.
-            </p>
-            <span class="small text-secondary ms-3" id="aviso-contador" data-aviso-contador>
-              0 / 160
-            </span>
-          </div>
+      <div class="row g-4">
+        <div class="col-12 col-lg-6">
+          <section class="card" aria-labelledby="aviso-mensaje-titulo">
+            <div class="card-body">
+              <h2 class="h5 mb-3" id="aviso-mensaje-titulo">Mensaje</h2>
+              <label class="form-label" for="aviso-mensaje">Escribe tu aviso</label>
+              <textarea
+                class="form-control"
+                id="aviso-mensaje"
+                name="mensaje"
+                rows="5"
+                maxlength="160"
+                data-aviso-mensaje
+                aria-describedby="aviso-contador aviso-validacion"
+              ></textarea>
+              <div class="d-flex justify-content-between align-items-start mt-2">
+                <p class="small mb-0" id="aviso-validacion" data-aviso-validacion aria-live="polite">
+                  El mensaje no puede estar vacío.
+                </p>
+                <span class="small text-secondary ms-3" id="aviso-contador" data-aviso-contador>
+                  0 / 160
+                </span>
+              </div>
+            </div>
+          </section>
         </div>
-      </section>
 
-      <section class="card mb-4" aria-labelledby="aviso-frases-titulo">
-        <div class="card-body">
-          <h2 class="h5 mb-3" id="aviso-frases-titulo">Frases rápidas</h2>
+        <div class="col-12 col-lg-6">
+          <section class="card mb-4" aria-labelledby="aviso-frases-titulo">
+            <div class="card-body">
+              <h2 class="h5 mb-3" id="aviso-frases-titulo">Frases rápidas</h2>
+              <div class="d-grid gap-2">
+                <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Estoy a salvo. Estoy bien y en un lugar seguro.">
+                  Estoy a salvo
+                </button>
+                <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Necesito ayuda. Estoy en un lugar seguro y espero apoyo.">
+                  Necesito ayuda
+                </button>
+                <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Estoy bien, pero no puedo comunicarme por teléfono.">
+                  Sin cobertura telefónica
+                </button>
+                <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Estoy en casa">
+                  Estoy en casa
+                </button>
+                <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Estoy en el trabajo">
+                  Estoy en el trabajo
+                </button>
+                <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Voy al punto de encuentro">
+                  Voy al punto de encuentro
+                </button>
+              </div>
+            </div>
+          </section>
+
           <div class="d-grid gap-2">
-            <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Estoy a salvo. Estoy bien y en un lugar seguro.">
-              Estoy a salvo
+            <button type="button" class="btn btn-primary" data-aviso-sms disabled>
+              Abrir mensajes
             </button>
-            <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Necesito ayuda. Estoy en un lugar seguro y espero apoyo.">
-              Necesito ayuda
-            </button>
-            <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Estoy bien, pero no puedo comunicarme por teléfono.">
-              Sin cobertura telefónica
-            </button>
-            <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Estoy en casa">
-              Estoy en casa
-            </button>
-            <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Estoy en el trabajo">
-              Estoy en el trabajo
-            </button>
-            <button type="button" class="btn btn-outline-primary text-start" data-aviso-frase="Voy al punto de encuentro">
-              Voy al punto de encuentro
+            <button type="button" class="btn btn-outline-primary" data-aviso-copiar disabled>
+              Copiar aviso
             </button>
           </div>
         </div>
-      </section>
-
-      <div class="d-grid gap-2">
-        <button type="button" class="btn btn-primary" data-aviso-sms disabled>
-          Abrir mensajes
-        </button>
-        <button type="button" class="btn btn-outline-primary" data-aviso-copiar disabled>
-          Copiar aviso
-        </button>
       </div>
       <p class="small text-center mt-3 visually-hidden" data-aviso-status role="status" aria-live="polite"></p>
     </main>
 
     <nav class="bottom-nav fixed-bottom" aria-label="Navegación principal">
+      <p class="bottom-nav__marca d-none d-lg-flex"><i class="bi bi-check-square-fill" aria-hidden="true"></i> A Salvo</p>
       <a class="bottom-nav__item" href="index.html">
         <i class="bi bi-house" aria-hidden="true"></i><span>Inicio</span>
       </a>
@@ -96,6 +103,7 @@
       <a class="bottom-nav__item active" href="mi_aviso.html" aria-current="page">
         <i class="bi bi-chat-text" aria-hidden="true"></i><span>Mi aviso</span>
       </a>
+      <p class="bottom-nav__nota d-none d-lg-block">Tus datos se guardan solo en este navegador. Sin cuentas ni contraseñas.</p>
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
